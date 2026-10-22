@@ -54,6 +54,21 @@ defmodule Ecto.Adapters.LibSql do
   - `:sync` - Enable automatic sync for embedded replicas (boolean, default: `true` when in replica mode)
   - `:encryption_key` - Encryption key for local database (minimum 32 characters)
 
+  ## UUID Storage
+
+  `:binary_id` fields are stored as UUID text. The storage of `:uuid` fields
+  (`Ecto.UUID`, also used by Ash for UUID attributes) is chosen with the
+  `:uuid_type` application environment, as in `ecto_sqlite3`:
+
+      config :ecto_libsql, uuid_type: :string
+
+  - `:binary` (default) - stored as 16-byte BLOBs
+  - `:string` - stored as UUID text, like `:binary_id`
+
+  SQLite never finds a TEXT value equal to a BLOB, so a column must hold a
+  single format: changing `:uuid_type` on an existing database requires
+  converting its `:uuid` columns.
+
   ## Features
 
   - Full Ecto query support (schemas, changesets, associations, etc.)
@@ -210,6 +225,14 @@ defmodule Ecto.Adapters.LibSql do
   @doc false
   def loaders(:boolean, type), do: [&bool_decode/1, type]
   def loaders(:binary_id, type), do: [type]
+
+  def loaders(:uuid, type) do
+    case uuid_type() do
+      :binary -> [type]
+      :string -> []
+    end
+  end
+
   def loaders(:utc_datetime, type), do: [&datetime_decode/1, type]
   def loaders(:utc_datetime_usec, type), do: [&datetime_decode/1, type]
   def loaders(:naive_datetime, type), do: [&datetime_decode/1, type]
@@ -310,9 +333,30 @@ defmodule Ecto.Adapters.LibSql do
   defp json_array_decode(value) when is_list(value), do: {:ok, value}
   defp json_array_decode(_value), do: :error
 
+  # How `:uuid` fields are stored: `:binary` (16-byte BLOBs, the default) or
+  # `:string` (UUID text).
+  defp uuid_type do
+    case Application.get_env(:ecto_libsql, :uuid_type, :binary) do
+      type when type in [:binary, :string] ->
+        type
+
+      other ->
+        raise ArgumentError,
+              "invalid :uuid_type for :ecto_libsql, expected :binary or :string, got: #{inspect(other)}"
+    end
+  end
+
   @doc false
   def dumpers(:binary, type), do: [type]
   def dumpers(:binary_id, type), do: [type]
+
+  def dumpers(:uuid, type) do
+    case uuid_type() do
+      :binary -> [type]
+      :string -> []
+    end
+  end
+
   def dumpers(:boolean, type), do: [type, &bool_encode/1]
   def dumpers(:utc_datetime, type), do: [type, &datetime_encode/1]
   def dumpers(:utc_datetime_usec, type), do: [type, &datetime_encode/1]

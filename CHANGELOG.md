@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **`:uuid_type` Configuration** - `config :ecto_libsql, uuid_type: :string` stores `:uuid` fields (`Ecto.UUID`, also used by Ash for UUID attributes) as UUID text, like `:binary_id` fields and like `ecto_sqlite3`'s option of the same name. The default, `:binary`, keeps storing them as 16-byte BLOBs, so existing databases are unaffected. The documentation, which described `:uuid` as stored as text, now states the default.
+
 ## [0.9.1] - 2026-05-07
 
 ### Fixed

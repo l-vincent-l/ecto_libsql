@@ -614,7 +614,8 @@ The following Ecto query features do not work due to SQLite limitations:
 |-----------|-------------|-------|
 | `:id` / `:integer` | `INTEGER` | ✅ |
 | `:string` | `TEXT` | ✅ |
-| `:binary_id` / `:uuid` | `TEXT` | ✅ Stored as UUID text |
+| `:binary_id` | `TEXT` | ✅ Stored as UUID text |
+| `:uuid` (`Ecto.UUID`) | `TEXT` column | ✅ 16-byte BLOB values by default, UUID text with `config :ecto_libsql, uuid_type: :string` |
 | `:binary` | `BLOB` | ✅ |
 | `:boolean` | `INTEGER` | ✅ 0 = false, 1 = true |
 | `:float` | `REAL` | ✅ |
