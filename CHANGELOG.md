@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - **Correlated Subqueries with `parent_as/1`** - The `parent_as/1` field references that correlate a subquery to its parent query had no `expr/3` clause and fell through to the catch-all, which rendered them as a bare `?` placeholder: the next bound parameter stood in for the field, silently changing the query. They are now translated to the parent query's source, as in the `ecto_sqlite3` adapter.
+- **`exists/1` Subqueries** - `exists(subquery)` had no `expr/3` clause and fell through to the catch-all, which rendered it as a bare `?` placeholder. The next bound parameter then stood in for the whole condition, so the filter silently matched every row or none depending on its value (for example, the policies Ash Framework expresses with `exists(...)` let every actor through). It is now translated to `exists(SELECT ...)`, as in the `ecto_sqlite3` adapter.
 
 ## [0.9.1] - 2026-05-07
 
